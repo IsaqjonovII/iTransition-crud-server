@@ -4,7 +4,6 @@ const authRoutes = require("./src/routes/auth");
 const mongoose = require("mongoose");
 require("dotenv/config");
 
-
 fastify.register(cors);
 fastify.register(authRoutes, { prefix: "/api/v0/auth" });
 fastify.get("/", (_, reply) => {
