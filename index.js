@@ -18,8 +18,8 @@ mongoose
 
 (() => {
     try {
-        //  
-        fastify.listen({ port: process.env.PORT || 8000, host: "0.0.0.0" }, function (err, address) {
+        //  , host: "0.0.0.0"
+        fastify.listen({ port: process.env.PORT || 8000 }, function (err, address) {
                 if (err) {
                     fastify.log.error(err);
                     process.exit(1);
