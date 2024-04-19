@@ -25,6 +25,11 @@ const UserSchema = new Schema({
     lastLogin: {
         type: Date,
         default: Date.now
+    },
+    status: {
+        type: String,
+        enum: ["active", "blocked"],
+        default: "active"
     }
 });
 

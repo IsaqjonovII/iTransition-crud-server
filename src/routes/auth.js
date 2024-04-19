@@ -1,8 +1,9 @@
-const { createUser, loginUser } = require("../controllers/auth.controller");
+const { createUser, loginUser, deleteUser } = require("../controllers/user.controller");
 
-async function routes(fastify){
-    fastify.post("/register", createUser);
-    fastify.post("/", loginUser)
+async function routes(fastify) {
+    fastify.post("/auth/register", createUser);
+    fastify.post("/auth", loginUser);
+    fastify.delete("/", deleteUser);
 }
 
-module.exports = routes
+module.exports = routes;

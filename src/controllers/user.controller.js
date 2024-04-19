@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/user.model");
 
+//* <<<< USER AUTHENTICATION >>>>
 async function createUser(req, reply) {
     try {
         const { name, email, password } = req.body;
@@ -35,4 +36,22 @@ async function loginUser(req, reply) {
     }
 }
 
-module.exports = { createUser, loginUser }
+//* <<<< USER ACTIONS >>>>
+
+async function deleteUser(req, reply) {
+    try {
+        const { id } = req.query;
+
+        //? 1. find the user
+        const user = await User.findById(id).exec();
+        if (!user) {
+            return reply.send({ message: "User doesn't exists!", status: 404 });
+        }
+        await User.findByIdAndDelete(id);
+        return reply.send({ message: "User deleted successfully" });
+    } catch (error) {
+
+    }
+}
+
+module.exports = { createUser, loginUser, deleteUser }
