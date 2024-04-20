@@ -12,6 +12,7 @@ async function createUser(req, reply) {
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = await User({ name, email, password: hashedPassword });
         const result = await newUser.save();
+        //* need refac:
         const userWithoutPassword = JSON.parse(JSON.stringify(result));
         delete userWithoutPassword.password;
         return reply.send({ user: userWithoutPassword, message: "Created successfully" });
@@ -54,4 +55,15 @@ async function deleteUser(req, reply) {
     }
 }
 
-module.exports = { createUser, loginUser, deleteUser }
+async function getAllUsers(_, reply) {
+    try {
+        const users = await User.find().select("-password");
+        return reply.send({ users });
+    } catch (error) {
+        console.log(error);
+        return reply.send({ message: "Error occured", error })
+    }
+}
+
+
+module.exports = { createUser, loginUser, deleteUser, getAllUsers }
