@@ -23,14 +23,19 @@ async function createUser(req, reply) {
 
 async function loginUser(req, reply) {
     try {
-        const user = await User.findOne({ email: req.body.email });
-        if (!user || !bcrypt.compare(req.body.password)) {
+        const user = await User.findOne({ email: req.body.email }).exec();
+        if (!user) {
             return reply.send({ message: "User doesn't exists!", status: 404 })
         }
-
-        const userWithoutPassword = JSON.parse(JSON.stringify(newUser));
-        delete userWithoutPassword.password;
-        return reply.send({ user: userWithoutPassword, message: "Created successfully" });
+        if (bcrypt.compare(req.body.password, user.password)) {
+            const userWithoutPassword = JSON.parse(JSON.stringify(newUser));
+            delete userWithoutPassword.password;
+            return reply.send({ user: userWithoutPassword, message: "Logged in successfully" });
+        }
+        if (!bcrypt.compare(req.body.password, user.password)) {
+            console.log("password or email incorrect")
+            return reply.send({ message: "Login or password is incorrect" })
+        }
 
     } catch (error) {
         return reply.send({ message: "Error occured in server", error });
@@ -64,6 +69,25 @@ async function getAllUsers(_, reply) {
         return reply.send({ message: "Error occured", error })
     }
 }
+async function changeUserStatus(req, reply) {
+    try {
+        const { id } = req.query;
 
+        const user = await User.findById(id);
+        if (!user) {
+            return reply.send({ message: "User doesn't exists", status: 404 })
+        }
+        if (user.status === "active") {
+            await User.findByIdAndUpdate({ status: "blocked" });
+            return reply.send("User blocked");
+        } else {
+            await User.findByIdAndUpdate({ status: "active" });
+            return reply.send("User activated");
+        }
 
-module.exports = { createUser, loginUser, deleteUser, getAllUsers }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+module.exports = { createUser, loginUser, deleteUser, getAllUsers, changeUserStatus }
