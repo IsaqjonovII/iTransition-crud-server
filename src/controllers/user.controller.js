@@ -15,7 +15,7 @@ async function createUser(req, reply) {
         //* need refac:
         const userWithoutPassword = JSON.parse(JSON.stringify(result));
         delete userWithoutPassword.password;
-        return reply.send({ user: userWithoutPassword, message: "Created successfully" });
+        return reply.send({ user: userWithoutPassword, message: "Created successfully", status: 200 });
     } catch (error) {
         return reply.send({ message: "Error occured in server", error });
     }
@@ -23,19 +23,22 @@ async function createUser(req, reply) {
 
 async function loginUser(req, reply) {
     try {
-        const user = await User.findOne({ email: req.body.email }).exec();
+        const user = await User.findOne({ email: req.body.email });
         if (!user) {
             return reply.send({ message: "User doesn't exists!", status: 404 })
         }
-        if (bcrypt.compare(req.body.password, user.password)) {
-            const userWithoutPassword = JSON.parse(JSON.stringify(newUser));
-            delete userWithoutPassword.password;
-            return reply.send({ user: userWithoutPassword, message: "Logged in successfully" });
-        }
-        if (!bcrypt.compare(req.body.password, user.password)) {
-            console.log("password or email incorrect")
+        const passwordMatch = await bcrypt.compare(req.body.password, user.password).then(res => res);
+
+        if (!passwordMatch) {
             return reply.send({ message: "Login or password is incorrect" })
         }
+        if (user.status !== "active") {
+            return reply.send({ message: "You're blocked and you can't log in. Create a account" })
+        }
+        await User.findByIdAndUpdate(user._id, { lastLogin: Date.now() })
+        const userWithoutPassword = { ...user.toObject() };
+        delete userWithoutPassword.password;
+        return reply.send({ user: userWithoutPassword, message: "Logged in successfully", status: 200 });
 
     } catch (error) {
         return reply.send({ message: "Error occured in server", error });
@@ -69,7 +72,7 @@ async function getAllUsers(_, reply) {
         return reply.send({ message: "Error occured", error })
     }
 }
-async function changeUserStatus(req, reply) {
+async function blockUser(req, reply) {
     try {
         const { id } = req.query;
 
@@ -78,11 +81,28 @@ async function changeUserStatus(req, reply) {
             return reply.send({ message: "User doesn't exists", status: 404 })
         }
         if (user.status === "active") {
-            await User.findByIdAndUpdate({ status: "blocked" });
-            return reply.send("User blocked");
+            await User.findByIdAndUpdate(id, { status: "blocked" });
+            return reply.send({ message: "User blocked" });
         } else {
-            await User.findByIdAndUpdate({ status: "active" });
-            return reply.send("User activated");
+            return reply.send({ message: "User is already blocked" });
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+async function unBlockUser(req, reply) {
+    try {
+        const { id } = req.query;
+
+        const user = await User.findById(id);
+        if (!user) {
+            return reply.send({ message: "User doesn't exists", status: 404 })
+        }
+        if (user.status === "blocked") {
+            await User.findByIdAndUpdate(id, { status: "active" });
+            return reply.send({ message: "User activated" });
+        } else {
+            return reply.send({ message: "User is already activated" });
         }
 
     } catch (error) {
@@ -90,4 +110,4 @@ async function changeUserStatus(req, reply) {
     }
 }
 
-module.exports = { createUser, loginUser, deleteUser, getAllUsers, changeUserStatus }
+module.exports = { createUser, loginUser, deleteUser, getAllUsers, blockUser, unBlockUser }
