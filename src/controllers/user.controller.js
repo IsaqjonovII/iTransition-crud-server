@@ -28,7 +28,6 @@ async function loginUser(req, reply) {
             return reply.send({ message: "User doesn't exists!", status: 404 })
         }
         const passwordMatch = await bcrypt.compare(req.body.password, user.password).then(res => res);
-
         if (!passwordMatch) {
             return reply.send({ message: "Login or password is incorrect" })
         }

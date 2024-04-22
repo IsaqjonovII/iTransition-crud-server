@@ -4,6 +4,7 @@ const authRoutes = require("./src/routes/auth");
 const mongoose = require("mongoose");
 require("dotenv/config");
 
+
 fastify.register(cors);
 fastify.register(authRoutes, { prefix: "/api/v0/user" });
 fastify.get("/", (_, reply) => {
@@ -18,7 +19,6 @@ mongoose
 
 (() => {
     try {
-        //  
         fastify.listen({ port: process.env.PORT || 8000, host: "0.0.0.0" }, function (err, address) {
             if (err) {
                 fastify.log.error(err);
