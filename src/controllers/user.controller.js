@@ -105,8 +105,27 @@ async function unBlockUser(req, reply) {
         }
 
     } catch (error) {
-        console.log(error);
+        return reply.status(500).send({ message: "Error occured in server", error });
     }
 }
 
-module.exports = { createUser, loginUser, deleteUser, getAllUsers, blockUser, unBlockUser }
+async function changeUsersStatus(req, reply) {
+    try {
+        const { actionType, users } = req.query;
+        if (actionType === "block") {
+            users.split(",").forEach(async (userId) => {
+                await User.findByIdAndUpdate(userId, { status: "blocked" });
+            });
+            return reply.send({ message: "Users are blocked" });
+        } else {
+            users.split(",").forEach(async (userId) => {
+                await User.findByIdAndUpdate(userId, { status: "active" });
+            })
+            return reply.send({ message: "Users are unblocked" });
+        }
+    } catch (error) {
+        return reply.status(500).send({ message: "Error occured in server", error });
+    }
+}
+
+module.exports = { createUser, loginUser, deleteUser, getAllUsers, blockUser, unBlockUser, changeUsersStatus }
